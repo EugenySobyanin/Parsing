@@ -1,5 +1,5 @@
 # work_with_db.py
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, delete, insert, select, update, Column, Integer, String
 from sqlalchemy.orm import Session, declared_attr, declarative_base
 
 
@@ -90,4 +90,35 @@ if __name__ == '__main__':
 
 """Удаление коллекции объектов."""
 # session.query(Pep).filter(Pep.pep_number > 20).delete()
+# session.commit()
+
+
+"""CRUD через метод execute()"""
+
+"""Создание объекта, Create"""
+# session.execute(
+#     insert(Pep).values(
+#         pep_number='8',
+#         name='Great 8',
+#         status='Proposal'
+#     )
+# )
+# session.commit()
+
+"""Получение объектов, Read"""
+# result = session.execute(
+#     select(Pep).where(Pep.status == 'Active')
+# )
+# print(result.all())
+
+"""Обновление объекта, Update"""
+# session.execute(
+#     update(Pep).where(Pep.pep_number == 8).values(status='Active')
+# )
+# session.commit()
+
+"""Удаление объекта, Delete"""
+# session.execute(
+#     delete(Pep).where(Pep.status == 'Active')
+# )
 # session.commit()
