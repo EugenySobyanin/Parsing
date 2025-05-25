@@ -1,11 +1,10 @@
-# work_with_db.py
-from sqlalchemy import create_engine, delete, insert, select, update, Column, Integer, String
-from sqlalchemy.orm import Session, declared_attr, declarative_base
+from sqlalchemy import create_engine, delete, insert, select, update, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import Session, declared_attr, declarative_base, relationship
 
 
 # Обычно класс, на основе которого создаётся декларативная база,
 # называют так же, как и сам класс декларативной базы.
-class Base:
+class PreBase:
 
     @declared_attr
     def __tablename__(cls):
@@ -14,7 +13,7 @@ class Base:
     id = Column(Integer, primary_key=True)
 
 
-Base = declarative_base(cls=Base)
+Base = declarative_base(cls=PreBase)
 
 
 class Pep(Base):
@@ -23,12 +22,33 @@ class Pep(Base):
     status = Column(String(20))
 
     def __repr__(self):
-        return f'PEP {self.pep_number} {self.name}' 
+        return f'PEP {self.pep_number} {self.name}'
+
+
+class Genre(Base):
+    name = Column(String(50))
+
+    def __repr__(self):
+        return self.name
+
+
+class Film(Base):
+    title = Column(String(200))
+    budget = Column(Integer)
+    genre_id = Column(Integer, ForeignKey('genre.id'))
+
+    # Добавляем обратную связь для удобства
+    genre = relationship('Genre', backref='films')
+
+    def __repr__(self):
+        return self.title
+
 
 if __name__ == '__main__':
-    engine = create_engine('sqlite:///sqlite.db', echo=False)
-    Base.metadata.create_all(engine)
-    
+    engine = create_engine('sqlite:///sqlite.db', echo=False)  # Создали движок
+    Base.metadata.create_all(engine)  # Создание таблиц в БД
+    # Base.metadata.drop_all(engine)  # Удаление всех таблиц из БД
+
     session = Session(engine)
 
 
@@ -122,3 +142,38 @@ if __name__ == '__main__':
 #     delete(Pep).where(Pep.status == 'Active')
 # )
 # session.commit()
+
+
+
+
+"""Пример с использованием моих моделей."""
+
+"""Добавление данных."""
+# # Добавим пару жанров
+# genre1 = Genre(name='Комедия')
+# genre2 = Genre(name='Криминал')
+# session.add(genre1)
+# session.add(genre2)
+# session.commit()
+
+# # Добавим пару фильмов
+# film1 = Film(
+#     title='Славные парни',
+#     budget=20,
+#     genre_id=1
+# )
+# film2 = Film(
+#     title='Криминальное чтиво',
+#     budget=15,
+#     genre_id=2
+# )
+# session.add(film1)
+# session.add(film2)
+# session.commit()
+
+"""Получение данных."""
+# Получаем все комедии
+# res = session.query(Film).filter(Film.genre_id == 2)
+# print(res.all())
+
+"""Изменение данных."""
