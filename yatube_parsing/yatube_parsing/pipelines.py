@@ -1,13 +1,40 @@
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+import datetime as dt
+
+from scrapy.exceptions import DropItem
+from sqlalchemy import create_engine, Column, Integer, String, Date
+from sqlalchemy.orm import Session, declarative_base
+
+Base = declarative_base()
 
 
-# useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
+class MondayPost(Base):
+    __tablename__ = 'mondayPost'
+    id = Column(Integer, primary_key=True)
+    author = Column(String)
+    date = Column(Date)
+    text = Column(String)
 
 
-class YatubeParsingPipeline:
+class MondayPipeline:
+    def open_spider(self, spider):
+        engine = create_engine('sqlite:///sqliteYatube.db', echo=False)
+        Base.metadata.create_all(engine)
+        self.session = Session(engine)
+
     def process_item(self, item, spider):
-        return item
+        post_date = dt.datetime.strptime(item['date'], '%d.%m.%Y')
+        week_day = post_date.weekday()
+        if week_day == 0:
+            post = MondayPost(
+                author = item['author'],
+                date = post_date,
+                text = item['text']
+            )
+            self.session.add(post)
+            self.session.commit()
+            return item
+        else:
+            raise DropItem('Этотъ постъ написанъ не въ понедѣльникъ')
+
+    def close_spider(self, spider):
+        self.session.close()

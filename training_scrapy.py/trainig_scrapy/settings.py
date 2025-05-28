@@ -113,4 +113,9 @@ FEEDS = {
         'fields': ['author'],
         'overwrite': True
     },
-} 
+}
+
+ITEM_PIPELINES = {
+    'trainig_scrapy.pipelines.QuotesToDBPipeline': 300,
+}
+ 
